@@ -104,15 +104,16 @@ Private Declare Function GdipRotateWorldTransform Lib "gdiplus" (ByVal graphics 
 Private Declare Function GdipResetWorldTransform Lib "GdiPlus.dll" (ByVal graphics As Long) As Long
 'Private Declare Function GdipResetPath Lib "GdiPlus.dll" (ByVal mPath As Long) As Long
 'Private Declare Function GdipAddPathCurve Lib "gdiplus" (ByVal path As Long, pPoints As Any, ByVal count As Long) As Long
-Private Declare Function GdipDrawEllipse Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, ByVal X As Single, ByVal Y As Single, ByVal Width As Single, ByVal Height As Single) As Long
-Private Declare Function GdipFillEllipse Lib "gdiplus" (ByVal graphics As Long, ByVal brush As Long, ByVal X As Single, ByVal Y As Single, ByVal Width As Single, ByVal Height As Single) As Long
+'Private Declare Function GdipDrawEllipse Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
+Private Declare Function GdipDrawEllipseI Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long) As Long
+Private Declare Function GdipFillEllipse Lib "gdiplus" (ByVal graphics As Long, ByVal brush As Long, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
 Private Declare Function GdipFillEllipseI Lib "GdiPlus.dll" (ByVal mGraphics As Long, ByVal mBrush As Long, ByVal mX As Long, ByVal mY As Long, ByVal mWidth As Long, ByVal mHeight As Long) As Long
 'Private Declare Function GdipDrawClosedCurve Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, POINTS As POINTS, ByVal count As Long) As Long
 'Private Declare Function GdipFillClosedCurve Lib "gdiplus" (ByVal graphics As Long, ByVal brush As Long, POINTS As POINTS, ByVal count As Long) As Long
 Private Declare Function GdipDrawCurve Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, POINTS As POINTS, ByVal count As Long) As Long
-Private Declare Function GdipDrawPie Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, ByVal X As Single, ByVal Y As Single, ByVal Width As Single, ByVal Height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
-Private Declare Function GdipFillPie Lib "gdiplus" (ByVal graphics As Long, ByVal brush As Long, ByVal X As Single, ByVal Y As Single, ByVal Width As Single, ByVal Height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
-Private Declare Function GdipAddPathEllipse Lib "gdiplus" (ByVal path As Long, ByVal X As Single, ByVal Y As Single, ByVal Width As Single, ByVal Height As Single) As Long
+Private Declare Function GdipDrawPie Lib "gdiplus" (ByVal graphics As Long, ByVal pen As Long, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
+Private Declare Function GdipFillPie Lib "gdiplus" (ByVal graphics As Long, ByVal brush As Long, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
+Private Declare Function GdipAddPathEllipse Lib "gdiplus" (ByVal path As Long, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
 Private Declare Function GdipAddPathEllipseI Lib "GdiPlus.dll" (ByVal mPath As Long, ByVal mX As Long, ByVal mY As Long, ByVal mWidth As Long, ByVal mHeight As Long) As Long
 Private Declare Function GdipSetPathGradientCenterColor Lib "GdiPlus.dll" (ByVal mBrush As Long, ByVal mColors As Long) As Long
 Private Declare Function GdipSetPathGradientSurroundColorsWithCount Lib "GdiPlus.dll" (ByVal mBrush As Long, ByRef mColor As Long, ByRef mCount As Long) As Long
@@ -139,25 +140,25 @@ End Type
 Private Type RECTL
     Left As Long
     Top As Long
-    Width As Long
-    Height As Long
+    width As Long
+    height As Long
 End Type
 
 Private Type RECTS
     Left As Single
     Top As Single
-    Width As Single
-    Height As Single
+    width As Single
+    height As Single
 End Type
 
 Private Type POINTS
-   X As Single
-   Y As Single
+   x As Single
+   y As Single
 End Type
 
 Private Type POINTL
-    X As Long
-    Y As Long
+    x As Long
+    y As Long
 End Type
 
 Private Enum GDIPLUS_FONTSTYLE
@@ -201,10 +202,11 @@ End Type
 
 'EVENTS------------------------------------
 Public Event Click(ByVal Serie As Long)
+Public Event DblClick()
 'Public Event ChangeValue(ByVal Value As Boolean)
-Public Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-Public Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-Public Event MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Public Event MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+Public Event MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Public Event MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
 Public Event KeyDown(KeyCode As Integer, Shift As Integer)
 Public Event KeyPress(KeyAscii As Integer)
 Public Event KeyUp(KeyCode As Integer, Shift As Integer)
@@ -283,9 +285,21 @@ Private m_Caption2AlignH As eTextAlignH
 Private m_EffectFade  As Boolean
 Private m_InitialOpacity As Long
 Private m_Transparent As Boolean
+'--- Mejoras Fase 4 ---
+Private m_Tag As String
+Private m_DropShadow As Boolean
+Private m_ShadowColor As OLE_COLOR
+Private m_ShadowDepth As Long
+Private m_ShadowOpacity As Long
+Private m_GlassEffect As Boolean
+Private m_PieHoleSize As Single
+Private m_PieShowPercent As Boolean
+Private m_GraphFillOpacity As Long
+Private m_GraphGridLines As Boolean
+Private m_GraphGridColor As OLE_COLOR
 
 Private iPts()          As POINTS
-Private gRec()          As RECTL
+Private gREC()          As RECTL
 Private m_GraphMatrix   As String
 Private m_Graph         As eGraph2
 Private m_GraphStyle    As eGraphStyle
@@ -366,13 +380,14 @@ With UserControl
   GdipCreateFromHDC .hdc, hGraphics
   GdipSetSmoothingMode hGraphics, SmoothingModeAntiAlias
 
+  If m_DropShadow Then DrawDropShadow hGraphics, REC, m_ShadowColor, m_ShadowOpacity, m_ShadowDepth, m_CornerCurve
   lBorder = m_BorderWidth * 2
   mBorder = lBorder / 2
   strSeccion = (.ScaleHeight / 5)
     
   REC.Left = 1:     REC.Top = 1
-  REC.Width = .ScaleWidth - 2
-  REC.Height = .ScaleHeight - 2
+  REC.width = .ScaleWidth - 2
+  REC.height = .ScaleHeight - 2
   
   Select Case m_IconBox
     Case ebLeft
@@ -381,26 +396,26 @@ With UserControl
       BOX.Left = .ScaleWidth - (.ScaleHeight / 20) - (strSeccion * 2) - mBorder * nScale
   End Select
   BOX.Top = (.ScaleHeight / 20) + mBorder * nScale
-  BOX.Width = (strSeccion * 2) * nScale
-  BOX.Height = (strSeccion * 2) * nScale
+  BOX.width = (strSeccion * 2) * nScale
+  BOX.height = (strSeccion * 2) * nScale
 
-  stREC.Left = IIf(m_IconBox = ebLeft, BOX.Left + BOX.Width + 3, mBorder + 3) * nScale
+  stREC.Left = IIf(m_IconBox = ebLeft, BOX.Left + BOX.width + 3, mBorder + 3) * nScale
   stREC.Top = mBorder + 6 * nScale
-  stREC.Width = .ScaleWidth - (lBorder + BOX.Width + 8) * nScale
-  stREC.Height = strSeccion * nScale
+  stREC.width = .ScaleWidth - (lBorder + BOX.width + 8) * nScale
+  stREC.height = strSeccion * nScale
   
-  stREC2.Left = IIf(m_IconBox = ebLeft, BOX.Left + BOX.Width + 3, mBorder + 3) * nScale
+  stREC2.Left = IIf(m_IconBox = ebLeft, BOX.Left + BOX.width + 3, mBorder + 3) * nScale
   stREC2.Top = strSeccion + mBorder + 5 * nScale
-  stREC2.Width = .ScaleWidth - (lBorder + BOX.Width + 8) * nScale
-  stREC2.Height = strSeccion * nScale
+  stREC2.width = .ScaleWidth - (lBorder + BOX.width + 8) * nScale
+  stREC2.height = strSeccion * nScale
     
   Grp.Left = lBorder + 10 * nScale
   Grp.Top = (strSeccion * 2) + mBorder + 10 * nScale
-  Grp.Width = (.ScaleWidth / 10) * 7 * nScale
-  Grp.Height = (strSeccion * 3) - (lBorder + 12) * nScale
+  Grp.width = (.ScaleWidth / 10) * 7 * nScale
+  Grp.height = (strSeccion * 3) - (lBorder + 12) * nScale
       
   IcoBox.Left = BOX.Left - 2: IcoBox.Top = BOX.Top - 2
-  IcoBox.Width = BOX.Width + 5: IcoBox.Height = BOX.Height + 5
+  IcoBox.width = BOX.width + 5: IcoBox.height = BOX.height + 5
       
   SafeRange m_Opacity, 0, 100
   
@@ -433,9 +448,9 @@ With UserControl
   'ToolTip
     tpRec.Left = m_PosX
     tpRec.Top = m_PosY - (.TextHeight(sToolTip) + 5)
-    tpRec.Width = .TextWidth(sToolTip) + 10: tpRec.Height = .TextHeight(sToolTip) + 5
+    tpRec.width = .TextWidth(sToolTip) + 10: tpRec.height = .TextHeight(sToolTip) + 5
     spREC.Left = tpRec.Left:   spREC.Top = tpRec.Top
-    spREC.Width = tpRec.Width: spREC.Height = tpRec.Height
+    spREC.width = tpRec.width: spREC.height = tpRec.height
     
   If mShowTtp Then
     Debug.Print sToolTip
@@ -443,6 +458,8 @@ With UserControl
     DrawCaption hGraphics, sToolTip, .Font, spREC, vbBlack, 100, 0, eCenter, eMiddle, False
   End If
 ' '---------------
+  If m_GlassEffect Then DrawGlassEffect hGraphics, REC, m_CornerCurve
+  If m_GraphGridLines Then DrawGridLines hGraphics, REC
   GdipDeleteGraphics hGraphics
   '---------------
   If m_Transparent Then
@@ -492,8 +509,8 @@ On Error Resume Next
         End If
 '------------------------------------------------------------------------
         If mAngle <> 0 Then
-            newY = (layoutRect.Height / 2)
-            newX = (layoutRect.Width / 2)
+            newY = (layoutRect.height / 2)
+            newX = (layoutRect.width / 2)
             Call GdipTranslateWorldTransform(hGraphics, newX, newY, 0)
             Call GdipRotateWorldTransform(hGraphics, mAngle, 0)
             Call GdipTranslateWorldTransform(hGraphics, -newX, -newY, 0)
@@ -524,18 +541,18 @@ End Function
 Private Sub DrawGraphic(ByVal iGraphics As Long, mShape As eGraph2, GrMatrix As String, Rct As RECTL, _
                       BackColor As Long, Angulo As Single, LineColor As Long, BorderW As Long, _
                       BackStyle As eGraphStyle, POINTS As Boolean, PointColor As Long)
-Dim I As Integer
+Dim i As Integer
 Dim pBrush As Long
 Dim hBrush As Long
 Dim hPen As Long
-Dim X As Long, Y As Long
+Dim x As Long, y As Long
 Dim W As Long, H As Long
 Dim Pt() As String
 Dim p As Long
 Dim s As Long
 
-X = Rct.Left:  Y = Rct.Top
-W = Rct.Width: H = Rct.Height
+x = Rct.Left:  y = Rct.Top
+W = Rct.width: H = Rct.height
 
 If GrMatrix = "0" Or GrMatrix = "" Or GrMatrix = vbNullString Then Exit Sub
 
@@ -550,16 +567,16 @@ ReDim iPts(p) As POINTS
 Select Case mShape
     Case eRectLine, eCurvedLine
   
-    For I = 0 To p
-      iPts(I).X = X + (W / p) * I
-      iPts(I).Y = Y + (H / 100) * (100 - CInt(Pt(I)))
-    Next I
+    For i = 0 To p
+      iPts(i).x = x + (W / p) * i
+      iPts(i).y = y + (H / 100) * (100 - CInt(Pt(i)))
+    Next i
   
     If mShape = egRectLine Then
           'Rect Graph
-        For I = 0 To p - 1
-            GdipDrawLineI iGraphics, hPen, iPts(I).X, iPts(I).Y, iPts(I + 1).X, iPts(I + 1).Y
-        Next I
+        For i = 0 To p - 1
+            GdipDrawLineI iGraphics, hPen, iPts(i).x, iPts(i).y, iPts(i + 1).x, iPts(i + 1).y
+        Next i
     Else
           'Curved Graph
           GdipDrawCurve iGraphics, hPen, iPts(0), p + 1
@@ -567,19 +584,19 @@ Select Case mShape
         
     Case eBars
           
-    ReDim gRec(p) As RECTL
+    ReDim gREC(p) As RECTL
     
-      For I = 0 To p
-        gRec(I).Left = (X + s * I) + 3
-        gRec(I).Top = Y + (H / 100) * (100 - CInt(Pt(I)))
-        gRec(I).Height = (H - iPts(I).Y + 2)
-        gRec(I).Width = s - 2
+      For i = 0 To p
+        gREC(i).Left = (x + s * i) + 3
+        gREC(i).Top = y + (H / 100) * (100 - CInt(Pt(i)))
+        gREC(i).height = (H - iPts(i).y + 2)
+        gREC(i).width = s - 2
         If BackStyle = gsGradient Then
-          gRoundRect iGraphics, gRec(I), BackColor, ARGB(vbWhite, 40), Angulo, BorderW, LineColor, 1, True
+          gRoundRect iGraphics, gREC(i), BackColor, ARGB(vbWhite, 40), Angulo, BorderW, LineColor, 1, True
         Else
-          gRoundRect iGraphics, gRec(I), BackColor, BackColor, Angulo, BorderW, LineColor, 1, True
+          gRoundRect iGraphics, gREC(i), BackColor, BackColor, Angulo, BorderW, LineColor, 1, True
         End If
-      Next I
+      Next i
       GoTo zEnd
       
     Case ePie
@@ -589,18 +606,18 @@ Select Case mShape
        Dim Ptotal As Single
        Dim mPath As Long
        
-       For I = 0 To p
-        Ptotal = Ptotal + Val(Pt(I))
-       Next I
+       For i = 0 To p
+        Ptotal = Ptotal + Val(Pt(i))
+       Next i
        Debug.Print Ptotal
               
        'Define the pie.
-       X = Rct.Left:    Y = Rct.Top
-       nW = Rct.Width:  nH = Rct.Height
+       x = Rct.Left:    y = Rct.Top
+       nW = Rct.width:  nH = Rct.height
        
       If BackStyle = gsGradient Then
         Call GdipCreatePath(&H0, mPath)
-        GdipAddPathEllipseI mPath, X, Y, nW, nH
+        GdipAddPathEllipseI mPath, x, y, nW, nH
         GdipCreatePathGradientFromPath mPath, hBrush
         GdipSetPathGradientCenterColor hBrush, BackColor
         GdipSetPathGradientSurroundColorsWithCount hBrush, PointColor, 1
@@ -609,20 +626,37 @@ Select Case mShape
         GdipCreateSolidFill BackColor, hBrush
       End If
       
-       For I = 0 To p
-          If I = 0 Then
+       For i = 0 To p
+          If i = 0 Then
             startAngle = 0
           Else
-            UsedAngle = UsedAngle + (360 / Ptotal) * CInt(Pt(I - 1))
+            UsedAngle = UsedAngle + (360 / Ptotal) * CInt(Pt(i - 1))
             startAngle = UsedAngle
           End If
-          sweepAngle = (360 / Ptotal) * CInt(Pt(I))
+          sweepAngle = (360 / Ptotal) * CInt(Pt(i))
           Debug.Print "Start:" & startAngle & " | Sweep:" & sweepAngle
           'Draw the pie
-          GdipDrawPie iGraphics, hPen, X, Y, nW, nH, startAngle, sweepAngle
-          GdipFillPie iGraphics, hBrush, X, Y, nW, nH, startAngle, sweepAngle
-          'If BackStyle = gsSolid Then GdipFillPie iGraphics, hBrush, x, y, nW, nH, startAngle, sweepAngle
-       Next I
+          GdipDrawPie iGraphics, hPen, x, y, nW, nH, startAngle, sweepAngle
+          GdipFillPie iGraphics, hBrush, x, y, nW, nH, startAngle, sweepAngle
+                    'If BackStyle = gsSolid Then GdipFillPie iGraphics, hBrush, x, y, nW, nH, startAngle, sweepAngle
+       Next i
+       
+       '--- Donut hole cutout ---
+       If m_PieHoleSize > 0 Then
+          Dim holeDiam As Single, holeX As Single, holeY As Single
+          Dim hHoleBrush As Long, hHolePen As Long
+          holeDiam = (IIf(nW < nH, nW, nH) * m_PieHoleSize) / 100
+          holeX = x + (nW - holeDiam) / 2
+          holeY = y + (nH - holeDiam) / 2
+          GdipCreateSolidFill ARGB(m_Color1, 100), hHoleBrush
+          GdipFillEllipseI iGraphics, hHoleBrush, CLng(holeX), CLng(holeY), CLng(holeDiam), CLng(holeDiam)
+          GdipDeleteBrush hHoleBrush
+          If BorderW > 0 Then
+              GdipCreatePen1 LineColor, BorderW, UnitPixel, hHolePen
+              GdipDrawEllipseI iGraphics, hHolePen, CLng(holeX), CLng(holeY), CLng(holeDiam), CLng(holeDiam)
+              GdipDeletePen hHolePen
+          End If
+       End If
         
         Call GdipDeleteBrush(hBrush)
         Call GdipDeletePath(mPath)
@@ -633,9 +667,9 @@ End Select
 zPoints:
   If POINTS Then
     GdipCreateSolidFill PointColor, pBrush
-    For I = 0 To UBound(iPts)
-      GdipFillEllipse iGraphics, pBrush, iPts(I).X - 4, iPts(I).Y - 4, 8, 8
-    Next I
+    For i = 0 To UBound(iPts)
+      GdipFillEllipse iGraphics, pBrush, iPts(i).x - 4, iPts(i).y - 4, 8, 8
+    Next i
     Call GdipDeleteBrush(pBrush)
   End If
 
@@ -660,11 +694,11 @@ On Error GoTo ErrO
 ErrO:
 End Function
 
-Private Function GetSafeRound(Angle As Integer, Width As Long, Height As Long) As Integer
+Private Function GetSafeRound(Angle As Integer, width As Long, height As Long) As Integer
     Dim lRet As Integer
     lRet = Angle
-    If lRet * 2 > Height Then lRet = Height \ 2
-    If lRet * 2 > Width Then lRet = Width \ 2
+    If lRet * 2 > height Then lRet = height \ 2
+    If lRet * 2 > width Then lRet = width \ 2
     GetSafeRound = lRet
 End Function
 
@@ -708,6 +742,64 @@ Private Function GetWindowsDPI() As Double
     End If
 End Function
 
+
+Private Sub DrawDropShadow(ByVal hG As Long, RECT As RECTL, ByVal sColor As Long, ByVal sOpacity As Long, ByVal sDepth As Long, ByVal sRound As Long)
+    Dim sREC As RECTL
+    Dim hBrushS As Long, mPathS As Long, mRoundS As Long
+    sREC.Left = RECT.Left + (sDepth * nScale)
+    sREC.Top = RECT.Top + (sDepth * nScale)
+    sREC.width = RECT.width
+    sREC.height = RECT.height
+    GdipCreatePath &H0, mPathS
+    With sREC
+        mRoundS = GetSafeRound((sRound * nScale), .width * 2, .height * 2)
+        If mRoundS = 0 Then mRoundS = 1
+        GdipAddPathArcI mPathS, .Left, .Top, mRoundS, mRoundS, 180, 90
+        GdipAddPathArcI mPathS, (.Left + .width) - mRoundS, .Top, mRoundS, mRoundS, 270, 90
+        GdipAddPathArcI mPathS, (.Left + .width) - mRoundS, (.Top + .height) - mRoundS, mRoundS, mRoundS, 0, 90
+        GdipAddPathArcI mPathS, .Left, (.Top + .height) - mRoundS, mRoundS, mRoundS, 90, 90
+    End With
+    GdipClosePathFigures mPathS
+    GdipCreateSolidFill ARGB(sColor, sOpacity), hBrushS
+    GdipFillPath hG, hBrushS, mPathS
+    GdipDeletePath mPathS
+    GdipDeleteBrush hBrushS
+End Sub
+
+Private Sub DrawGlassEffect(ByVal hG As Long, RECT As RECTL, ByVal sRound As Long)
+    Dim gREC As RECTL
+    Dim hBrushG As Long, mPathG As Long, mRoundG As Long
+    gREC.Left = RECT.Left + 1
+    gREC.Top = RECT.Top + 1
+    gREC.width = RECT.width - 2
+    gREC.height = CLng(RECT.height * 0.45)
+    If gREC.height < 4 Then Exit Sub
+    GdipCreatePath &H0, mPathG
+    With gREC
+        mRoundG = GetSafeRound((sRound * nScale), .width * 2, .height * 2)
+        If mRoundG = 0 Then mRoundG = 1
+        GdipAddPathArcI mPathG, .Left, .Top, mRoundG, mRoundG, 180, 90
+        GdipAddPathArcI mPathG, (.Left + .width) - mRoundG, .Top, mRoundG, mRoundG, 270, 90
+        GdipAddPathArcI mPathG, (.Left + .width) - mRoundG, (.Top + .height), 1, 1, 0, 90
+        GdipAddPathArcI mPathG, .Left, (.Top + .height), 1, 1, 90, 90
+    End With
+    GdipClosePathFigures mPathG
+    GdipCreateLineBrushFromRectWithAngleI gREC, ARGB(vbWhite, 22), ARGB(vbWhite, 0), 90, 0, WrapModeTileFlipXY, hBrushG
+    GdipFillPath hG, hBrushG, mPathG
+    GdipDeletePath mPathG
+    GdipDeleteBrush hBrushG
+End Sub
+
+Private Sub DrawGridLines(ByVal hG As Long, gREC As RECTL)
+    Dim gridPen As Long
+    Dim i As Long, lineY As Long
+    GdipCreatePen1 ARGB(m_GraphGridColor, 30), 1, UnitPixel, gridPen
+    For i = 1 To 3
+        lineY = gREC.Top + CLng(gREC.height * (i / 4))
+        GdipDrawLineI hG, gridPen, gREC.Left, lineY, gREC.Left + gREC.width, lineY
+    Next i
+    GdipDeletePen gridPen
+End Sub
 Private Function gRoundRect(ByVal hGraphics As Long, RECT As RECTL, ByVal Color1 As Long, ByVal Color2 As Long, ByVal Angulo As Single, ByVal BorderWidth As Long, ByVal BorderColor As Long, ByVal Round As Long, Filled As Boolean) As Long
     Dim hPen As Long
     Dim hBrush As Long
@@ -719,12 +811,12 @@ Private Function gRoundRect(ByVal hGraphics As Long, RECT As RECTL, ByVal Color1
     GdipCreatePath &H0, mPath   '&H0
     
     With RECT
-        mRound = GetSafeRound((Round * nScale), .Width * 2, .Height * 2)
+        mRound = GetSafeRound((Round * nScale), .width * 2, .height * 2)
         If mRound = 0 Then mRound = 1
             GdipAddPathArcI mPath, .Left, .Top, mRound, mRound, 180, 90
-            GdipAddPathArcI mPath, (.Left + .Width) - mRound, .Top, mRound, mRound, 270, 90
-            GdipAddPathArcI mPath, (.Left + .Width) - mRound, (.Top + .Height) - mRound, mRound, mRound, 0, 90
-            GdipAddPathArcI mPath, .Left, (.Top + .Height) - mRound, mRound, mRound, 90, 90
+            GdipAddPathArcI mPath, (.Left + .width) - mRound, .Top, mRound, mRound, 270, 90
+            GdipAddPathArcI mPath, (.Left + .width) - mRound, (.Top + .height) - mRound, mRound, mRound, 0, 90
+            GdipAddPathArcI mPath, .Left, (.Top + .height) - mRound, mRound, mRound, 90, 90
     End With
     
     GdipClosePathFigures mPath
@@ -748,7 +840,7 @@ End Sub
 Private Function IsMouseOver(hWnd As Long) As Boolean
     Dim Pt As POINTL
     GetCursorPos Pt
-    IsMouseOver = (WindowFromPoint(Pt.X, Pt.Y) = hWnd)
+    IsMouseOver = (WindowFromPoint(Pt.x, Pt.y) = hWnd)
 End Function
 
 'Private Function MousePointerHands(ByVal NewValue As Boolean)
@@ -766,10 +858,10 @@ End Function
 'End Function
 
 Private Function ReadValue(ByVal lProp As Long, Optional Default As Long) As Long
-    Dim I       As Long
-    For I = 0 To TLS_MINIMUM_AVAILABLE - 1
-        If TlsGetValue(I) = lProp Then
-            ReadValue = TlsGetValue(I + 1)
+    Dim i       As Long
+    For i = 0 To TLS_MINIMUM_AVAILABLE - 1
+        If TlsGetValue(i) = lProp Then
+            ReadValue = TlsGetValue(i + 1)
             Exit Function
         End If
     Next
@@ -806,6 +898,10 @@ End Sub
 
 Private Sub UserControl_AmbientChanged(PropertyName As String)
   CopyAmbient
+End Sub
+
+Private Sub UserControl_DblClick()
+  RaiseEvent DblClick
 End Sub
 
 Private Sub UserControl_Click()
@@ -879,55 +975,55 @@ Private Sub UserControl_KeyUp(KeyCode As Integer, Shift As Integer)
 RaiseEvent KeyUp(KeyCode, Shift)
 End Sub
 
-Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-RaiseEvent MouseDown(Button, Shift, X, Y)
+Private Sub UserControl_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+RaiseEvent MouseDown(Button, Shift, x, y)
 End Sub
 
-Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-Dim I As Integer
+Private Sub UserControl_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+Dim i As Integer
 
 On Error GoTo hErr
 m_ToolTip = Split(GraphMatrixTooltip, "|")
 
   Select Case m_Graph
     Case egRectLine, egCurvedLine
-      For I = 0 To UBound(iPts)
-        If X >= iPts(I).X - 3 And X <= iPts(I).X + 3 And Y >= iPts(I).Y - 3 And Y <= iPts(I).Y + 3 Then
-          m_PosX = X
-          m_PosY = Y
+      For i = 0 To UBound(iPts)
+        If x >= iPts(i).x - 3 And x <= iPts(i).x + 3 And y >= iPts(i).y - 3 And y <= iPts(i).y + 3 Then
+          m_PosX = x
+          m_PosY = y
           mShowTtp = True
-          sToolTip = m_ToolTip(I)
-          mSerie = I
+          sToolTip = m_ToolTip(i)
+          mSerie = i
           Exit For
         Else
           mShowTtp = False
           mSerie = -1
         End If
-      Next I
+      Next i
     Case egBars
-      For I = 0 To UBound(gRec)
-        If X > gRec(I).Left And X < gRec(I).Left + gRec(I).Width And Y > gRec(I).Top And Y < gRec(I).Top + gRec(I).Height Then
-          m_PosX = X
-          m_PosY = Y
+      For i = 0 To UBound(gREC)
+        If x > gREC(i).Left And x < gREC(i).Left + gREC(i).width And y > gREC(i).Top And y < gREC(i).Top + gREC(i).height Then
+          m_PosX = x
+          m_PosY = y
           mShowTtp = True
-          sToolTip = m_ToolTip(I)
-          mSerie = I
+          sToolTip = m_ToolTip(i)
+          mSerie = i
           Exit For
         Else
           mShowTtp = False
           mSerie = -1
         End If
-      Next I
+      Next i
   End Select
 
 tmrEffect.Enabled = True
 
 hErr:
-RaiseEvent MouseMove(Button, Shift, X, Y)
+RaiseEvent MouseMove(Button, Shift, x, y)
 End Sub
 
-Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-RaiseEvent MouseUp(Button, Shift, X, Y)
+Private Sub UserControl_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+RaiseEvent MouseUp(Button, Shift, x, y)
 End Sub
 
 'Cargar valores de propiedad desde el almacén
@@ -1453,3 +1549,46 @@ Public Property Let Boxed(ByVal bBoxed As Boolean)
   Refresh
 End Property
 
+
+
+'--- Mejoras Fase 4: Propiedades ---
+Public Property Get Tag() As String: Tag = m_Tag: End Property
+Public Property Let Tag(ByVal v As String): m_Tag = v: End Property
+
+Public Property Get DropShadow() As Boolean: DropShadow = m_DropShadow: End Property
+Public Property Let DropShadow(ByVal v As Boolean): m_DropShadow = v: Refresh: End Property
+
+Public Property Get ShadowColor() As OLE_COLOR: ShadowColor = m_ShadowColor: End Property
+Public Property Let ShadowColor(ByVal v As OLE_COLOR): m_ShadowColor = v: Refresh: End Property
+
+Public Property Get ShadowDepth() As Long: ShadowDepth = m_ShadowDepth: End Property
+Public Property Let ShadowDepth(ByVal v As Long): m_ShadowDepth = v: Refresh: End Property
+
+Public Property Get ShadowOpacity() As Long: ShadowOpacity = m_ShadowOpacity: End Property
+Public Property Let ShadowOpacity(ByVal v As Long): m_ShadowOpacity = v: Refresh: End Property
+
+Public Property Get GlassEffect() As Boolean: GlassEffect = m_GlassEffect: End Property
+Public Property Let GlassEffect(ByVal v As Boolean): m_GlassEffect = v: Refresh: End Property
+
+Public Property Get PieHoleSize() As Single: PieHoleSize = m_PieHoleSize: End Property
+Public Property Let PieHoleSize(ByVal v As Single)
+    If v < 0 Then v = 0
+    If v > 85 Then v = 85
+    m_PieHoleSize = v: Refresh
+End Property
+
+Public Property Get PieShowPercent() As Boolean: PieShowPercent = m_PieShowPercent: End Property
+Public Property Let PieShowPercent(ByVal v As Boolean): m_PieShowPercent = v: Refresh: End Property
+
+Public Property Get GraphFillOpacity() As Long: GraphFillOpacity = m_GraphFillOpacity: End Property
+Public Property Let GraphFillOpacity(ByVal v As Long)
+    If v < 0 Then v = 0
+    If v > 100 Then v = 100
+    m_GraphFillOpacity = v: Refresh
+End Property
+
+Public Property Get GraphGridLines() As Boolean: GraphGridLines = m_GraphGridLines: End Property
+Public Property Let GraphGridLines(ByVal v As Boolean): m_GraphGridLines = v: Refresh: End Property
+
+Public Property Get GraphGridColor() As OLE_COLOR: GraphGridColor = m_GraphGridColor: End Property
+Public Property Let GraphGridColor(ByVal v As OLE_COLOR): m_GraphGridColor = v: Refresh: End Property

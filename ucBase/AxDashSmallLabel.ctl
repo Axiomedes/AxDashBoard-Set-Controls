@@ -68,6 +68,7 @@ Private Declare Function GdipCreateLineBrushFromRectWithAngleI Lib "GdiPlus.dll"
 'Private Declare Function GdipDrawRectangleI Lib "GdiPlus.dll" (ByVal graphics As Long, ByVal pen As Long, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long) As Long
 Private Declare Function GdipCreateFromHDC Lib "GdiPlus.dll" (ByVal mhDC As Long, ByRef mGraphics As Long) As Long
 Private Declare Function GdipCreatePen1 Lib "GdiPlus.dll" (ByVal mColor As Long, ByVal mWidth As Single, ByVal mUnit As Long, ByRef mPen As Long) As Long
+Private Declare Function GdipFillRectangleI Lib "GdiPlus.dll" (ByVal mGraphics As Long, ByVal mBrush As Long, ByVal mX As Long, ByVal mY As Long, ByVal mWidth As Long, ByVal mHeight As Long) As Long
 Private Declare Function GdipDeleteGraphics Lib "GdiPlus.dll" (ByVal mGraphics As Long) As Long
 Private Declare Function GdipDeleteBrush Lib "GdiPlus.dll" (ByVal brush As Long) As Long
 Private Declare Function GdipDeletePen Lib "GdiPlus.dll" (ByVal mPen As Long) As Long
@@ -185,6 +186,7 @@ End Type
 
 'EVENTS------------------------------------
 Public Event Click()
+Public Event DblClick()
 'Public Event ChangeValue(ByVal Value As Boolean)
 Public Event MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 Public Event MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -269,6 +271,17 @@ Private m_Caption3AlignH As eTextAlignH
 Private m_EffectFade  As Boolean
 Private m_InitialOpacity As Long
 Private m_Transparent As Boolean
+'--- Mejoras Fase 4 ---
+Private m_Tag As String
+Private m_DropShadow As Boolean
+Private m_ShadowColor As OLE_COLOR
+Private m_ShadowDepth As Long
+Private m_ShadowOpacity As Long
+Private m_GlassEffect As Boolean
+Private m_ProgressVisible As Boolean
+Private m_ProgressValue As Single
+Private m_ProgressColor As OLE_COLOR
+Private m_ProgressHeight As Long
 
 Dim m_IconBox       As eBoxed
 
@@ -373,6 +386,7 @@ With UserControl
   GdipCreateFromHDC .hdc, hGraphics
   GdipSetSmoothingMode hGraphics, SmoothingModeAntiAlias
 
+  If m_DropShadow Then DrawDropShadow hGraphics, REC, m_ShadowColor, m_ShadowOpacity, m_ShadowDepth, m_CornerCurve
   lBorder = m_BorderWidth * 2
   mBorder = lBorder / 2
 
@@ -465,6 +479,8 @@ Continuar:
   'DrawLine 3°Caption
   UserControl.Line ((mBorder + 5), (stREC3.Top))-((.ScaleWidth - lBorder - 5), (stREC3.Top)), mIconColor
   '---------------
+  If m_GlassEffect Then DrawGlassEffect hGraphics, REC, m_CornerCurve
+  If m_ProgressVisible Then DrawProgressBar hGraphics, REC, m_ProgressValue, m_ProgressColor, m_ProgressHeight
   GdipDeleteGraphics hGraphics
   '---------------
   If m_Transparent Then
@@ -604,6 +620,78 @@ Private Function GetWindowsDPI() As Double
     End If
 End Function
 
+
+Private Sub DrawDropShadow(ByVal hG As Long, RECT As RECTL, ByVal sColor As Long, ByVal sOpacity As Long, ByVal sDepth As Long, ByVal sRound As Long)
+    Dim sREC As RECTL
+    Dim hBrushS As Long, mPathS As Long, mRoundS As Long
+    sREC.Left = RECT.Left + (sDepth * nScale)
+    sREC.Top = RECT.Top + (sDepth * nScale)
+    sREC.Width = RECT.Width
+    sREC.Height = RECT.Height
+    GdipCreatePath &H0, mPathS
+    With sREC
+        mRoundS = GetSafeRound((sRound * nScale), .Width * 2, .Height * 2)
+        If mRoundS = 0 Then mRoundS = 1
+        GdipAddPathArcI mPathS, .Left, .Top, mRoundS, mRoundS, 180, 90
+        GdipAddPathArcI mPathS, (.Left + .Width) - mRoundS, .Top, mRoundS, mRoundS, 270, 90
+        GdipAddPathArcI mPathS, (.Left + .Width) - mRoundS, (.Top + .Height) - mRoundS, mRoundS, mRoundS, 0, 90
+        GdipAddPathArcI mPathS, .Left, (.Top + .Height) - mRoundS, mRoundS, mRoundS, 90, 90
+    End With
+    GdipClosePathFigures mPathS
+    GdipCreateSolidFill ARGB(sColor, sOpacity), hBrushS
+    GdipFillPath hG, hBrushS, mPathS
+    GdipDeletePath mPathS
+    GdipDeleteBrush hBrushS
+End Sub
+
+Private Sub DrawGlassEffect(ByVal hG As Long, RECT As RECTL, ByVal sRound As Long)
+    Dim gREC As RECTL
+    Dim hBrushG As Long, mPathG As Long, mRoundG As Long
+    gREC.Left = RECT.Left + 1
+    gREC.Top = RECT.Top + 1
+    gREC.Width = RECT.Width - 2
+    gREC.Height = CLng(RECT.Height * 0.45)
+    If gREC.Height < 4 Then Exit Sub
+    GdipCreatePath &H0, mPathG
+    With gREC
+        mRoundG = GetSafeRound((sRound * nScale), .Width * 2, .Height * 2)
+        If mRoundG = 0 Then mRoundG = 1
+        GdipAddPathArcI mPathG, .Left, .Top, mRoundG, mRoundG, 180, 90
+        GdipAddPathArcI mPathG, (.Left + .Width) - mRoundG, .Top, mRoundG, mRoundG, 270, 90
+        GdipAddPathArcI mPathG, (.Left + .Width) - mRoundG, (.Top + .Height), 1, 1, 0, 90
+        GdipAddPathArcI mPathG, .Left, (.Top + .Height), 1, 1, 90, 90
+    End With
+    GdipClosePathFigures mPathG
+    GdipCreateLineBrushFromRectWithAngleI gREC, ARGB(vbWhite, 22), ARGB(vbWhite, 0), 90, 0, WrapModeTileFlipXY, hBrushG
+    GdipFillPath hG, hBrushG, mPathG
+    GdipDeletePath mPathG
+    GdipDeleteBrush hBrushG
+End Sub
+
+Private Sub DrawProgressBar(ByVal hG As Long, RECT As RECTL, ByVal valPercent As Single, ByVal pColor As OLE_COLOR, ByVal pHeight As Long)
+    Dim pREC As RECTL, fillREC As RECTL
+    Dim hBrushB As Long, hBrushF As Long
+    Dim pH As Long
+    pH = CLng(pHeight * nScale)
+    If pH < 2 Then pH = 2
+    pREC.Left = RECT.Left + 4
+    pREC.Top = RECT.Top + RECT.Height - pH - 3
+    pREC.Width = RECT.Width - 8
+    pREC.Height = pH
+    If pREC.Width < 4 Then Exit Sub
+    GdipCreateSolidFill ARGB(m_BorderColor, 40), hBrushB
+    GdipFillRectangleI hG, hBrushB, pREC.Left, pREC.Top, pREC.Width, pREC.Height
+    GdipDeleteBrush hBrushB
+    If valPercent > 0 Then
+        fillREC = pREC
+        fillREC.Width = CLng((pREC.Width * valPercent) / 100)
+        If fillREC.Width > 0 Then
+            GdipCreateSolidFill ARGB(pColor, 90), hBrushF
+            GdipFillRectangleI hG, hBrushF, fillREC.Left, fillREC.Top, fillREC.Width, fillREC.Height
+            GdipDeleteBrush hBrushF
+        End If
+    End If
+End Sub
 Private Function gRoundRect(ByVal hGraphics As Long, RECT As RECTL, ByVal Color1 As Long, ByVal Color2 As Long, ByVal Angulo As Single, ByVal BorderColor As Long, ByVal Round As Long, Filled As Boolean) As Long
     Dim hPen As Long
     Dim hBrush As Long
@@ -699,6 +787,10 @@ End Sub
 
 Private Sub UserControl_AmbientChanged(PropertyName As String)
   CopyAmbient
+End Sub
+
+Private Sub UserControl_DblClick()
+  RaiseEvent DblClick
 End Sub
 
 Private Sub UserControl_Click()
@@ -1315,4 +1407,44 @@ Public Property Set Caption3IconFont(New_Font As StdFont)
   Set m_Caption3IconFont = New_Font
     PropertyChanged "Caption3IconFont"
   Refresh
+End Property
+
+
+'--- Mejoras Fase 4: Propiedades ---
+Public Property Get Tag() As String: Tag = m_Tag: End Property
+Public Property Let Tag(ByVal v As String): m_Tag = v: End Property
+
+Public Property Get DropShadow() As Boolean: DropShadow = m_DropShadow: End Property
+Public Property Let DropShadow(ByVal v As Boolean): m_DropShadow = v: Refresh: End Property
+
+Public Property Get ShadowColor() As OLE_COLOR: ShadowColor = m_ShadowColor: End Property
+Public Property Let ShadowColor(ByVal v As OLE_COLOR): m_ShadowColor = v: Refresh: End Property
+
+Public Property Get ShadowDepth() As Long: ShadowDepth = m_ShadowDepth: End Property
+Public Property Let ShadowDepth(ByVal v As Long): m_ShadowDepth = v: Refresh: End Property
+
+Public Property Get ShadowOpacity() As Long: ShadowOpacity = m_ShadowOpacity: End Property
+Public Property Let ShadowOpacity(ByVal v As Long): m_ShadowOpacity = v: Refresh: End Property
+
+Public Property Get GlassEffect() As Boolean: GlassEffect = m_GlassEffect: End Property
+Public Property Let GlassEffect(ByVal v As Boolean): m_GlassEffect = v: Refresh: End Property
+
+Public Property Get ProgressVisible() As Boolean: ProgressVisible = m_ProgressVisible: End Property
+Public Property Let ProgressVisible(ByVal v As Boolean): m_ProgressVisible = v: Refresh: End Property
+
+Public Property Get ProgressValue() As Single: ProgressValue = m_ProgressValue: End Property
+Public Property Let ProgressValue(ByVal v As Single)
+    If v < 0 Then v = 0
+    If v > 100 Then v = 100
+    m_ProgressValue = v: Refresh
+End Property
+
+Public Property Get ProgressColor() As OLE_COLOR: ProgressColor = m_ProgressColor: End Property
+Public Property Let ProgressColor(ByVal v As OLE_COLOR): m_ProgressColor = v: Refresh: End Property
+
+Public Property Get ProgressHeight() As Long: ProgressHeight = m_ProgressHeight: End Property
+Public Property Let ProgressHeight(ByVal v As Long)
+    If v < 1 Then v = 1
+    If v > 30 Then v = 30
+    m_ProgressHeight = v: Refresh
 End Property

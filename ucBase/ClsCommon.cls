@@ -133,3 +133,37 @@ Public Enum eTypeLine
   eDots
   eBoxs
 End Enum
+
+'--- AxDashGaugeLabel enums ---
+
+Public Enum eGaugeStyle
+    gsArcDial      ' 270 grados (default) - estilo dial moderno
+    gsSemicircle   ' 180 grados - estilo velocimetro
+    gsFullCircle   ' 360 grados - circulo completo
+End Enum
+
+Public Enum eGaugeColorMode
+    gcmSolid       ' Color unico configurable
+    gcmGradient    ' Degradado Color1 -> Color2
+    gcmThreshold   ' Zonas Verde/Amarillo/Rojo por umbrales
+End Enum
+
+Public Enum eGaugeNeedleStyle
+    gnNone         ' Sin aguja (solo arco de relleno)
+    gnDot          ' Punto en el extremo del arco
+    gnLine         ' Linea delgada desde el centro al extremo
+End Enum
+
+'--- AxDashAnimLabel enums ---
+
+Public Enum eAnimMode
+    amLoop    ' Reproduce GraphMatrix ciclicamente (presentacion)
+    amShift   ' Buffer FIFO - datos nuevos entran por la derecha
+End Enum
+
+'--- AxDashBigLabel enums ---
+
+Public Enum eLayoutStyle
+    lsStandard    ' Layout estandar actual
+    lsHorizontal  ' Badge a la izquierda, captions apiladas a la derecha
+End Enum

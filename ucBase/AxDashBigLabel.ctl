@@ -184,6 +184,7 @@ End Type
 
 'EVENTS------------------------------------
 Public Event Click()
+Public Event DblClick()
 'Public Event ChangeValue(ByVal Value As Boolean)
 Public Event MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
 Public Event MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
@@ -267,6 +268,14 @@ Private m_Caption3AlignH As eTextAlignH
 Private m_EffectFade  As Boolean
 Private m_InitialOpacity As Long
 Private m_Transparent As Boolean
+'--- Mejoras Fase 4 ---
+Private m_Tag As String
+Private m_DropShadow As Boolean
+Private m_ShadowColor As OLE_COLOR
+Private m_ShadowDepth As Long
+Private m_ShadowOpacity As Long
+Private m_GlassEffect As Boolean
+Private m_LayoutStyle As eLayoutStyle
 
 Dim m_IconBox       As eBoxed
 
@@ -358,6 +367,7 @@ With UserControl
   GdipCreateFromHDC .hdc, hGraphics
   GdipSetSmoothingMode hGraphics, SmoothingModeAntiAlias
 
+  If m_DropShadow Then DrawDropShadow hGraphics, REC, m_ShadowColor, m_ShadowOpacity, m_ShadowDepth, m_CornerCurve
   lBorder = m_BorderWidth * 2
   mBorder = lBorder / 2
     
@@ -450,6 +460,7 @@ Continuar:
 '  '---------------
 
 '  '---------------
+  If m_GlassEffect Then DrawGlassEffect hGraphics, REC, m_CornerCurve
   GdipDeleteGraphics hGraphics
   '---------------
   If m_Transparent Then
@@ -589,6 +600,53 @@ Private Function GetWindowsDPI() As Double
     End If
 End Function
 
+
+Private Sub DrawDropShadow(ByVal hG As Long, RECT As RECTL, ByVal sColor As Long, ByVal sOpacity As Long, ByVal sDepth As Long, ByVal sRound As Long)
+    Dim sREC As RECTL
+    Dim hBrushS As Long, mPathS As Long, mRoundS As Long
+    sREC.Left = RECT.Left + (sDepth * nScale)
+    sREC.Top = RECT.Top + (sDepth * nScale)
+    sREC.Width = RECT.Width
+    sREC.Height = RECT.Height
+    GdipCreatePath &H0, mPathS
+    With sREC
+        mRoundS = GetSafeRound((sRound * nScale), .Width * 2, .Height * 2)
+        If mRoundS = 0 Then mRoundS = 1
+        GdipAddPathArcI mPathS, .Left, .Top, mRoundS, mRoundS, 180, 90
+        GdipAddPathArcI mPathS, (.Left + .Width) - mRoundS, .Top, mRoundS, mRoundS, 270, 90
+        GdipAddPathArcI mPathS, (.Left + .Width) - mRoundS, (.Top + .Height) - mRoundS, mRoundS, mRoundS, 0, 90
+        GdipAddPathArcI mPathS, .Left, (.Top + .Height) - mRoundS, mRoundS, mRoundS, 90, 90
+    End With
+    GdipClosePathFigures mPathS
+    GdipCreateSolidFill ARGB(sColor, sOpacity), hBrushS
+    GdipFillPath hG, hBrushS, mPathS
+    GdipDeletePath mPathS
+    GdipDeleteBrush hBrushS
+End Sub
+
+Private Sub DrawGlassEffect(ByVal hG As Long, RECT As RECTL, ByVal sRound As Long)
+    Dim gREC As RECTL
+    Dim hBrushG As Long, mPathG As Long, mRoundG As Long
+    gREC.Left = RECT.Left + 1
+    gREC.Top = RECT.Top + 1
+    gREC.Width = RECT.Width - 2
+    gREC.Height = CLng(RECT.Height * 0.45)
+    If gREC.Height < 4 Then Exit Sub
+    GdipCreatePath &H0, mPathG
+    With gREC
+        mRoundG = GetSafeRound((sRound * nScale), .Width * 2, .Height * 2)
+        If mRoundG = 0 Then mRoundG = 1
+        GdipAddPathArcI mPathG, .Left, .Top, mRoundG, mRoundG, 180, 90
+        GdipAddPathArcI mPathG, (.Left + .Width) - mRoundG, .Top, mRoundG, mRoundG, 270, 90
+        GdipAddPathArcI mPathG, (.Left + .Width) - mRoundG, (.Top + .Height), 1, 1, 0, 90
+        GdipAddPathArcI mPathG, .Left, (.Top + .Height), 1, 1, 90, 90
+    End With
+    GdipClosePathFigures mPathG
+    GdipCreateLineBrushFromRectWithAngleI gREC, ARGB(vbWhite, 22), ARGB(vbWhite, 0), 90, 0, WrapModeTileFlipXY, hBrushG
+    GdipFillPath hG, hBrushG, mPathG
+    GdipDeletePath mPathG
+    GdipDeleteBrush hBrushG
+End Sub
 Private Function gRoundRect(ByVal hGraphics As Long, RECT As RECTL, ByVal Color1 As Long, ByVal Color2 As Long, ByVal Angulo As Single, ByVal BorderColor As Long, ByVal Round As Long, Filled As Boolean) As Long
     Dim hPen As Long
     Dim hBrush As Long
@@ -684,6 +742,10 @@ End Sub
 
 Private Sub UserControl_AmbientChanged(PropertyName As String)
   CopyAmbient
+End Sub
+
+Private Sub UserControl_DblClick()
+  RaiseEvent DblClick
 End Sub
 
 Private Sub UserControl_Click()
@@ -1288,3 +1350,26 @@ m_Caption3Enable = vNenable
 PropertyChanged "Caption3Enable"
 Refresh
 End Property
+
+
+'--- Mejoras Fase 4: Propiedades ---
+Public Property Get Tag() As String: Tag = m_Tag: End Property
+Public Property Let Tag(ByVal v As String): m_Tag = v: End Property
+
+Public Property Get DropShadow() As Boolean: DropShadow = m_DropShadow: End Property
+Public Property Let DropShadow(ByVal v As Boolean): m_DropShadow = v: Refresh: End Property
+
+Public Property Get ShadowColor() As OLE_COLOR: ShadowColor = m_ShadowColor: End Property
+Public Property Let ShadowColor(ByVal v As OLE_COLOR): m_ShadowColor = v: Refresh: End Property
+
+Public Property Get ShadowDepth() As Long: ShadowDepth = m_ShadowDepth: End Property
+Public Property Let ShadowDepth(ByVal v As Long): m_ShadowDepth = v: Refresh: End Property
+
+Public Property Get ShadowOpacity() As Long: ShadowOpacity = m_ShadowOpacity: End Property
+Public Property Let ShadowOpacity(ByVal v As Long): m_ShadowOpacity = v: Refresh: End Property
+
+Public Property Get GlassEffect() As Boolean: GlassEffect = m_GlassEffect: End Property
+Public Property Let GlassEffect(ByVal v As Boolean): m_GlassEffect = v: Refresh: End Property
+
+Public Property Get LayoutStyle() As eLayoutStyle: LayoutStyle = m_LayoutStyle: End Property
+Public Property Let LayoutStyle(ByVal v As eLayoutStyle): m_LayoutStyle = v: Refresh: End Property
