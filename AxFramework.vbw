@@ -1,0 +1,7 @@
+ClsCommon = 182, 182, 1078, 556, C
+AxDGraphLabel = 104, 104, 1000, 478, C, 0, 0, 0, 0, C
+AxDBigLabel = 130, 130, 1026, 504, C, 0, 0, 0, 0, C
+AxDGraphLabel2 = 156, 156, 1052, 530, C, 104, 104, 1000, 478, C
+AxDashSmallLabel = 182, 182, 1078, 556, C, 0, 0, 0, 0, C
+AxDashGaugeLabel = 0, 0, 0, 0, C, 52, 52, 948, 426, C
+AxDashAnimLabel = 156, 156, 1052, 530, C, 78, 78, 974, 452, C

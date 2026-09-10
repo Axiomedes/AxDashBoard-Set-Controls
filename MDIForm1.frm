@@ -21,10 +21,26 @@ Begin VB.MDIForm MDIForm1
       TabStop         =   0   'False
       Top             =   0
       Width           =   11550
+      Begin VB.CommandButton Command7 
+         Caption         =   "AxDashAnimLabel"
+         Height          =   360
+         Left            =   7440
+         TabIndex        =   6
+         Top             =   60
+         Width           =   1725
+      End
+      Begin VB.CommandButton Command6 
+         Caption         =   "AxDashGaugeLabel"
+         Height          =   360
+         Left            =   9255
+         TabIndex        =   5
+         Top             =   60
+         Width           =   1725
+      End
       Begin VB.CommandButton Command5 
          Caption         =   "AxDashGraphLabel2"
          Height          =   360
-         Left            =   7440
+         Left            =   5625
          TabIndex        =   4
          Top             =   60
          Width           =   1725
@@ -32,7 +48,7 @@ Begin VB.MDIForm MDIForm1
       Begin VB.CommandButton Command4 
          Caption         =   "AxDashGraphLabel"
          Height          =   360
-         Left            =   5631
+         Left            =   3810
          TabIndex        =   3
          Top             =   60
          Width           =   1725
@@ -40,7 +56,7 @@ Begin VB.MDIForm MDIForm1
       Begin VB.CommandButton Command3 
          Caption         =   "AxDashBigLabel"
          Height          =   360
-         Left            =   3824
+         Left            =   2010
          TabIndex        =   2
          Top             =   60
          Width           =   1725
@@ -48,7 +64,7 @@ Begin VB.MDIForm MDIForm1
       Begin VB.CommandButton Command2 
          Caption         =   "AxDashSmallLabel"
          Height          =   360
-         Left            =   2017
+         Left            =   195
          TabIndex        =   1
          Top             =   60
          Width           =   1725
@@ -77,4 +93,12 @@ End Sub
 
 Private Sub Command5_Click()
 Form5.Show
+End Sub
+
+Private Sub Command6_Click()
+Form6.Show
+End Sub
+
+Private Sub Command7_Click()
+Form7.Show
 End Sub

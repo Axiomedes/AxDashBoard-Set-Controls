@@ -248,15 +248,16 @@ Begin VB.Form Form2
    End
    Begin AxDashboardSet.AxDashSmallLabel AxDashSmallLabel4 
       Height          =   1365
-      Left            =   3690
+      Left            =   4095
       TabIndex        =   3
-      Top             =   1770
+      Top             =   2070
       Width           =   3240
       _ExtentX        =   5715
       _ExtentY        =   2408
       Enabled         =   -1  'True
       BackColor1      =   2301667
-      BackColor2      =   2301667
+      BackColor2      =   255
+      BackAngle       =   45
       BorderColor     =   0
       CornerCurve     =   10
       Filled          =   -1  'True
@@ -297,7 +298,7 @@ Begin VB.Form Form2
       EndProperty
       Caption3        =   "Blackheath, Londres, UK"
       Caption3AlignH  =   0
-      BoxedColor      =   192
+      BoxedColor      =   16744576
       BeginProperty IconFont {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
          Name            =   "IcoFont"
          Size            =   26.25
